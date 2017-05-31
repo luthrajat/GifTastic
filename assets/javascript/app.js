@@ -50,6 +50,16 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   Purpose: GIPHY Search using API.
 -->
 **/
+var preDefinedButtons = ['dog','cat','rabbit','hamster','skunk','goldfish','bird','ferret','turtle','sugar glider','chinchilla','hedgehog','hermit crab','gerbil','pygmy goat','chicken','capybara','teacup plg', 'serval', 'salamander', 'frog'];
+
+function populateShortcutButton(index, shortCutName) {
+    var quickButtons = $("#quickButtons");
+    var button = $("<button>");
+    button.attr("id", shortCutName.replace(/ /g, ''));
+    button.addClass("shortcut");
+    button.text(shortCutName);
+    quickButtons.append(button);
+}
 
 function callGiphy(title) {
     var thubnailsObj = $("#thumbnails");
@@ -57,16 +67,19 @@ function callGiphy(title) {
 
      if (title.length<1) {
        thubnailsObj.html(createNewTextDisplay("Please provide a word to search."));
-       return;
+       return isValidRequest;
      }
      var queryURL = "http://api.giphy.com/v1/gifs/search?q="+title+"&api_key=dc6zaTOxFJmzC";
-
      $.ajax({
        url: queryURL,
        method: 'GET'
      }).done(function(response) {
-       console.log(response);
        if (response.data.length>0) {
+         var id = $("#"+title.replace(/ /g,''));
+         if (id.length==0) {
+           preDefinedButtons.push(title);
+           populateShortcutButton(preDefinedButtons.length, title);
+         }
          printGrid(response, thubnailsObj);
        } else {
           thubnailsObj.html(createNewTextDisplay("No result found for <strong>" + title + "</strong>."));
