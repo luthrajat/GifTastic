@@ -66,12 +66,18 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       $(document).ready(function() {
         $.each(preDefinedButtons, populateShortcutButton);
 
+        $(document).onkeypress = function(event) {
+         console.log(event.which);
+        };
+
         var player = document.getElementById("player");
-        $(document).on("click", ".search", function() {
-            var searchString = $("#giphySearchText").val();
-            callGiphy(searchString);
-            $("#giphySearchText").val("");
-        });
+        $(document).on("click", ".search", handleSearch);
+
+        function handleSearch() {
+          var searchString = $("#giphySearchText").val();
+          callGiphy(searchString);
+          $("#giphySearchText").val("");
+        }
 
         $(document).on("click", ".shortcut", function() {
             callGiphy($(this).text());
@@ -113,7 +119,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           <div class="row">
             <section class="main-section">
                 <div class="col-md-12">
-                    <div id="thumbnails"></div>
+                    <div class="panel-group" id="thumbnails">
+                    </div>
                 </div>
               </section>
           </div>

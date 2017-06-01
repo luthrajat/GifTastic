@@ -53,45 +53,62 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 var preDefinedButtons = ['dog','cat','rabbit','hamster','skunk','goldfish','bird','ferret','turtle','sugar glider','chinchilla','hedgehog','hermit crab','gerbil','pygmy goat','chicken','capybara','teacup plg', 'serval', 'salamander', 'frog'];
 
 function populateShortcutButton(index, shortCutName) {
-    var quickButtons = $("#quickButtons");
-    var button = $("<button>");
-    button.attr("id", shortCutName.replace(/ /g, ''));
-    button.addClass("shortcut");
-    button.text(shortCutName);
-    quickButtons.append(button);
+  var quickButtons = $("#quickButtons");
+  var button = $("<button>");
+  button.attr("id", shortCutName.replace(/ /g, ''));
+  button.addClass("shortcut");
+  button.text(shortCutName);
+  quickButtons.append(button);
 }
 
 function callGiphy(title) {
-    var thubnailsObj = $("#thumbnails");
-    thubnailsObj.empty();
+  var thubnailsObj = $("#thumbnails");
+  thubnailsObj.empty();
 
-     if (title.length<1) {
-       thubnailsObj.html(createNewTextDisplay("Please provide a word to search."));
-       return isValidRequest;
-     }
-     var queryURL = "http://api.giphy.com/v1/gifs/search?q="+title+"&api_key=dc6zaTOxFJmzC";
-     $.ajax({
-       url: queryURL,
-       method: 'GET'
-     }).done(function(response) {
-       if (response.data.length>0) {
-         var id = $("#"+title.replace(/ /g,''));
-         if (id.length==0) {
-           preDefinedButtons.push(title);
-           populateShortcutButton(preDefinedButtons.length, title);
-         }
-         printGrid(response, thubnailsObj);
-       } else {
-          thubnailsObj.html(createNewTextDisplay("No result found for <strong>" + title + "</strong>."));
+   if (title.length<1) {
+     thubnailsObj.html(createNewTextDisplay("Please provide a word to search."));
+     return;
+   }
+   var queryURL = "http://api.giphy.com/v1/gifs/search?q="+title+"&api_key=dc6zaTOxFJmzC";
+   $.ajax({
+     url: queryURL,
+     method: 'GET'
+   }).done(function(response) {
+     if (response.data.length>0) {
+       var id = $("#"+title.replace(/ /g,''));
+       if (id.length==0) {
+         preDefinedButtons.push(title);
+         populateShortcutButton(preDefinedButtons.length, title);
        }
-     });
-}
-
- function printGrid(response, thubnailsObj) {
-      $.each(response.data, function(index, item) {
-         thubnailsObj.append(createNewThumbnail(item.images.fixed_height.url, "grid"));
-      });
+       printGrid(response, thubnailsObj);
+     } else {
+        thubnailsObj.html(createNewTextDisplay("No result found for <strong>" + title + "</strong>."));
+     }
+   });
  }
+
+$(document).on("click", ".grid", function() {
+  var img = $(this);
+
+  var isStill = img.data("isStill");
+  var src = "";
+  if (isStill == "1") {
+      isStill = "0";
+      src = img.data("animated");
+  } else {
+    isStill = "1";
+    src = img.data("still");
+  }
+  img.attr("src", src);
+  img.data("isStill", isStill);
+});
+
+function printGrid(response, thubnailsObj) {
+  $.each(response.data, function(index, item) {
+    var rating = getRatingPanel(thubnailsObj.children().length, item.rating, thubnailsObj);
+    rating.append(createNewThumbnail(item, "grid"));
+  });
+}
 
 function createNewTextDisplay(displayString) {
   var displayDiv = $("<div>");
@@ -102,11 +119,50 @@ function createNewTextDisplay(displayString) {
   return displayDiv;
 }
 
-function createNewThumbnail(location, className) {
+function createNewThumbnail(item, className) {
   var displayThumbnail = $("<img>");
   if(className) {
     displayThumbnail.addClass(className);
   }
-  displayThumbnail.attr("src",location);
+  displayThumbnail.data("isStill", "1");
+  displayThumbnail.data("animated", item.images.fixed_height.url);
+  displayThumbnail.data("still", item.images.fixed_height_still.url);
+  displayThumbnail.attr("src",item.images.fixed_height_still.url);
   return displayThumbnail;
+}
+
+function getRatingPanel(index, ratingString, thubnailsObj) {
+  var panelBody = $("#"+ratingString);
+  if(panelBody.length==1) return panelBody;
+
+  var ahref = $("<a>");
+  ahref.data("toggle", "collapse");
+  ahref.data("parent", "#thumbnails");
+  ahref.attr("href", "#collapse"+index);
+  ahref.text("Rating: " + ratingString);
+
+  panelBody = $("<div>")
+  panelBody.addClass("panel-body");
+  panelBody.attr("id", ratingString);
+
+  var h4 = $("<h4>");
+  h4.addClass("panel-title");
+  h4.append(ahref);
+
+  var panelHeading = $("<div>");
+  panelHeading.addClass("panel-heading");
+  panelHeading.append(h4);
+
+  var panelDefault = $("<div>");
+  panelDefault.addClass("panel panel-default");
+  panelDefault.append(panelHeading);
+
+  var collapse = $("<div>");
+  collapse.addClass("panel-collapse collapse in");
+  collapse.append(panelBody);
+
+  panelDefault.append(collapse);
+  thubnailsObj.append(panelDefault);
+
+  return panelBody;
 }

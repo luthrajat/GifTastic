@@ -60,3 +60,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   margin-right: 2px;
   margin-bottom: 2px;
 }
+
+.rating {
+  clear: both;
+}
